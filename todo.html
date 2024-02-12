@@ -6,61 +6,52 @@
     , initial-scale=1.0">
     <title>ToDo App</title>
     <style>
+#todo-app {
+  width: 400px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
 
-        *{
-            box-sizing: border-box;
-        }
-        body{
-            background-color: #f5f5f5;
-            color: #444;
-            font-family: 'poppins',sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            
+#todo-form {
+  display: flex;
+  margin-bottom: 10px;
+}
 
-        }
-        .form{
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            max-width: 100%;
-            width: 400px;
+#new-todo {
+  flex-grow: 1;
+  padding: 5px;
+}
 
-        }
-        .input{
-            border: none;
-            color: #444;
-            font-size: 2rem;
-            padding: 1rem 2rem;
-            display: block;
-            width: 100%;
-        }
-        .input::placeholder{
-            color: #d5d5d5;
-        }
-        .input:focus{
-            outline-color: rgb(179,131,226);
-        }
-        .todos{
-            background-color: #fff;
-            padding: 0;
-            margin: 0;
-            list-style-type: none;
+#todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 
-        }
-        .todos li{
-            border-top: 1px solid #e5e5e5;
-            cursor: pointer;
-            font-size: 1.5rem;
-            padding: 1rem 2rem;
+#todo-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px;
+  background-color: #f2f2f2;
+  margin-bottom: 5px;
+}
 
-        }
-        .todos li.complete{
-            color: #b6b6b6;
-            text-decoration: line-through;
-        }
+#todo-list li span {
+  margin-left: 10px;
+}
+
+#clear-completed {
+  display: block;
+  margin-top: 10px;
+}
+
+#todo-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
 
     </style>
    
@@ -68,73 +59,73 @@
 
 </head>
 <body>
-    <form id = "form">
-        <input type="text" id="text" class="input" placeholder="enter your list" autocomplete="off">
-    <ul class ="todos" id = "todos"></ul>
-    </form>
+    <div id="todo-app">
+        <h1>Todo List</h1>
+        <form id="todo-form">
+          <input type="text" id="new-todo" placeholder="Add a new todo...">
+          <button type="submit">Add</button>
+        </form>
+        <ul id="todo-list"></ul>
+        <button id="clear-completed">Clear Completed</button>
+        <footer id="todo-footer">
+          <span id="pending-tasks">Pending Tasks: </span>
+          <span id="total-tasks">0</span>
+        </footer>
+      </div>
     
     
  <script>
-    const form = document.getElementById('form')
-    const input=document.getElementById('input')
+    const form = document.getElementById("todo-form");
+const input = document.getElementById("new-todo");
+const list = document.getElementById("todo-list");
+const clearCompleted = document.getElementById("clear-completed");
+const pendingTasks = document.getElementById("pending-tasks");
+const totalTasks = document.getElementById("total-tasks");
 
-    const todosUL=document.getElementById('todos')
-    const todos =JSON.parse(
-        localStorage.getItem("todos")
-    )
-    if (todos) {
-        todos.forEach(todo => addtodo(todo)
-            
-        );
-        
-    }
-    from.addEventListener('submit',(e)=>{
-        e.preventDefault()
-        addtodo()
-    })
-    function addtodo(todo){
-        let todotext = input.value
-        if(todo){
-            todotext = todo.text
-        }
-        if (todotext) {
-            const todoE1 = document.createElement('li')
-            if (todo && todo.completed) {
-                todoE1.classList.add('completed')
-                
-            }
-            todoE1.innertext = todotext
-            todoE1.addEventListen('click',()=>{
-                todoE1.classlist.toogle('completed')
-                updateLS()
-            })
-            todoE1.addEventListen('contextmenu',(e)=>{
-                e.preventDefault()
-                todoE1.remove()
-                updateLS()
-            })
-            todosUL.appendChild(todoE1)
-            input.value=''
-            updateLS()
-            
-            
-        }
-    }
-    function updateLS (){
-        todoE1 = document.querySelectorAll('li')
-        const todos =[]
-        todoE1.forEach(todoE1 =>{
-            todos.push({
-                text:todoE1.innertext,completed:todoE1.classlist.contains(completed)
+let todos = [];
 
-            })
-        })
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (input.value.trim() === "") return;
+  const todo = {
+    id: Date.now(),
+    text: input.value.trim(),
+    completed: false,
+  };
+  todos.push(todo);
+  input.value = "";
+  renderTodos();
+});
 
-        localStorage.setItem('todos',JSON.stringify(todos))
-    }
+list.addEventListener("change", (e) => {
+  if (e.target.tagName === "INPUT") {
+    const todoId = e.target.id;
+    const todo = todos.find((t) => t.id === parseInt(todoId));
+    todo.completed = e.target.checked;
+    renderTodos();
+  }
+});
 
+clearCompleted.addEventListener("click", () => {
+  todos = todos.filter((t) => !t.completed);
+  renderTodos();
+});
 
-
+function renderTodos() {
+  list.innerHTML = "";
+  let pending = 0;
+  todos.forEach((todo) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <input type="checkbox" id="${todo.id}" ${todo.completed ? "checked" : ""}>
+      <label for="${todo.id}">${todo.text}</label>
+    `;
+    list.appendChild(li);
+    if (!todo.completed) pending++;
+  });
+  totalTasks.textContent = todos.length;
+  pendingTasks.textContent = `Pending Tasks: ${pending}`;
+}
 
 
 
